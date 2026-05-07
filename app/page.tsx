@@ -1,65 +1,87 @@
-import Image from "next/image";
+import axios from "axios";
 
-export default function Home() {
+// Qiita APIの型を定義
+type QiitaResponse = {
+  id: string;
+  title: string;
+  url: string;
+  image: string;
+};
+
+type MicrocmsContent = {
+  id: string;
+  title: string;
+  eyecatch: {
+    url: string;
+  }
+}
+
+type MicrocmsResponse = {
+  contents: MicrocmsContent[];
+}
+
+// async　をつけることによってコンポーネント内部で直接awaitを使ってデータ取得ができる
+// useEffect使わなくてOK
+export default async function Home() {
+  const getQiitaItems = async () => {
+    const response = await axios.get<QiitaResponse[]>(
+      'https://qiita.com/api/v2/items?query=user:Sicut_study&per_page=4',
+      {
+        headers: {
+          // process .envで設定した環境変数へアクセス
+          'Authorization': `Bearer ${process.env.QIITA_API_KEY}`
+        }
+      }
+    );
+    return response.data.map((item) => ({
+      id: item.id,
+      title: item.title,
+      url: item.url,
+      image: "https://qiita-user-contents.imgix.net/https%3A%2F%2Fqiita-image-store.s3.ap-northeast-1.amazonaws.com%2F0%2F810513%2F04c6ef92-7b08-467f-95b0-efd05a0e7ea4.png?ixlib=rb-4.0.0&auto=format&gif-q=60&q=75&w=1400&fit=max&s=255a4084e07534dc5871b77aa1318d0e"
+
+    }))
+  }
+
+  const getMicrocmsItems = async () => {
+    const response = await axios.get<MicrocmsResponse>(
+      "https://f5i8lb9k4u.microcms.io/api/v1/blogs",
+      {
+        headers: {
+          "X-MICROCMS-API-KEY": `${process.env.MICROCMS_API_KEY}`
+        }
+      }
+    )
+
+    return response.data.contents.map((item) => ({
+      id: item.id,
+      title: item.title,
+      url: `blogs/${item.id}`,
+      image: item.eyecatch.url,
+    }))
+  }
+
+  const qiitaItems = await getQiitaItems();
+  const microcmsItems = await getMicrocmsItems();
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div>
+      <h1>Topページ</h1>
+      <ul>
+        {qiitaItems.map((item) => (
+          <li key={item.id}>
+            <img src={item.image} alt={item.title} width={100} height={100} />
+            <a href={item.url} target="_blank" rel="noreferrer noopener">{item.title}</a>
+          </li>
+        ))}
+      </ul>
+      <ul>
+        {microcmsItems.map((item) => (
+          <li key={item.id}>
+            <img src={item.image} alt={item.title} width={100} height={100} />
+            <a href={item.url} target="_blank" rel="noopener noreferrer"></a>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
