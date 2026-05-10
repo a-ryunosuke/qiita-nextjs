@@ -1,24 +1,6 @@
+import { MicrocmsResponse, QiitaResponse } from "@/domain/Article";
 import axios from "axios";
-
-// Qiita APIの型を定義
-type QiitaResponse = {
-  id: string;
-  title: string;
-  url: string;
-  image: string;
-};
-
-type MicrocmsContent = {
-  id: string;
-  title: string;
-  eyecatch: {
-    url: string;
-  }
-}
-
-type MicrocmsResponse = {
-  contents: MicrocmsContent[];
-}
+import Image from "next/image"
 
 // async　をつけることによってコンポーネント内部で直接awaitを使ってデータ取得ができる
 // useEffect使わなくてOK
@@ -77,8 +59,9 @@ export default async function Home() {
       <ul>
         {microcmsItems.map((item) => (
           <li key={item.id}>
-            <img src={item.image} alt={item.title} width={100} height={100} />
+            <Image src={item.image} alt={item.title} width={100} height={100} />
             <a href={item.url} target="_blank" rel="noopener noreferrer"></a>
+            <h2>{item.title}</h2>
           </li>
         ))}
       </ul>
