@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // next16からデフォルトでfalseになるtrueに戻す
+  cacheComponents: true,
 };
 
 export default nextConfig;
